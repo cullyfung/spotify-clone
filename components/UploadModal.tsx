@@ -131,6 +131,7 @@ const UploadModal: React.FC<UploadModalProps> = () => {
           <div className="pb-1">Select a song file</div>
           <Input
             id="song"
+            type="file"
             disabled={isLoading}
             accept=".mp3"
             {...register('song', { required: true })}
@@ -140,6 +141,7 @@ const UploadModal: React.FC<UploadModalProps> = () => {
           <div className="pb-1">Select an image</div>
           <Input
             id="image"
+            type="file"
             disabled={isLoading}
             accept="image/*"
             {...register('image', { required: true })}

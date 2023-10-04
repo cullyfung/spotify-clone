@@ -17,7 +17,7 @@ const getActiveProductsWithPrices = async (): Promise<ProductsWithPrices[]> => {
       foreignTable: 'prices'
     });
   if (error) {
-    console.log(error);
+    console.log(error.message);
   }
   return (data as any) || [];
 };

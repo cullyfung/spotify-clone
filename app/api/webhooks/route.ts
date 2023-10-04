@@ -1,12 +1,12 @@
 import Stripe from 'stripe';
+import { NextResponse } from 'next/server';
+import { headers } from 'next/headers';
 
 import { stripe } from '@/libs/stripe';
-import { headers } from 'next/headers';
-import { NextResponse } from 'next/server';
 import {
-  manageSubscriptionStatusChange,
+  upsertProductRecord,
   upsertPriceRecord,
-  upsertProductRecord
+  manageSubscriptionStatusChange
 } from '@/libs/supabaseAdmin';
 
 const relevantEvents = new Set([
@@ -30,9 +30,9 @@ export async function POST(request: Request) {
   try {
     if (!sig || !webhookSecret) return;
     event = stripe.webhooks.constructEvent(body, sig, webhookSecret);
-  } catch (error: any) {
-    console.log('Error Message: ' + error.message);
-    return new NextResponse(`Webhook Error: ${error.message}`, { status: 400 });
+  } catch (err: any) {
+    console.log(`❌ Error message: ${err.message}`);
+    return new NextResponse(`Webhook Error: ${err.message}`, { status: 400 });
   }
 
   if (relevantEvents.has(event.type)) {
@@ -42,12 +42,10 @@ export async function POST(request: Request) {
         case 'product.updated':
           await upsertProductRecord(event.data.object as Stripe.Product);
           break;
-
         case 'price.created':
         case 'price.updated':
           await upsertPriceRecord(event.data.object as Stripe.Price);
           break;
-
         case 'customer.subscription.created':
         case 'customer.subscription.updated':
         case 'customer.subscription.deleted':
@@ -69,22 +67,17 @@ export async function POST(request: Request) {
             );
           }
           break;
-
         default:
           throw new Error('Unhandled relevant event!');
       }
     } catch (error) {
       console.log(error);
-      return new NextResponse('Webhook Error', { status: 400 });
+      return new NextResponse(
+        'Webhook error: "Webhook handler failed. View logs."',
+        { status: 400 }
+      );
     }
-
-    return NextResponse.json(
-      {
-        received: true
-      },
-      {
-        status: 200
-      }
-    );
   }
+
+  return NextResponse.json({ received: true }, { status: 200 });
 }

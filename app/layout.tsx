@@ -1,4 +1,3 @@
-import './globals.css';
 import type { Metadata } from 'next';
 import { Figtree } from 'next/font/google';
 
@@ -10,6 +9,8 @@ import getSongsByUserId from '@/actions/getSongsByUserId';
 import getActiveProductsWithPrices from '@/actions/getActiveProductsWithPrices';
 import Sidebar from '@/components/Sidebar';
 import Player from '@/components/Player';
+
+import './globals.css';
 
 const font = Figtree({ subsets: ['latin'] });
 

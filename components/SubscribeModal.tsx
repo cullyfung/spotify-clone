@@ -3,11 +3,11 @@
 import { useState } from 'react';
 import toast from 'react-hot-toast';
 
-import { useUser } from '@/hooks/useUser';
 import useSubscribeModal from '@/hooks/useSubscribeModal';
-import { Price, ProductsWithPrices } from '@/types';
+import { useUser } from '@/hooks/useUser';
 import { postData } from '@/libs/helper';
 import { getStripe } from '@/libs/stripeClient';
+import { Price, ProductsWithPrices } from '@/types';
 
 import Modal from './Modal';
 import Button from './Button';
@@ -16,12 +16,12 @@ interface SubscribeModalProps {
   products: ProductsWithPrices[];
 }
 
-const formatePrice = (price: Price) => {
+const formatPrice = (price: Price) => {
   const priceString = new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: price.currency,
     minimumFractionDigits: 0
-  }).format((price.unit_amount || 0) / 100);
+  }).format((price?.unit_amount || 0) / 100);
 
   return priceString;
 };
@@ -29,6 +29,7 @@ const formatePrice = (price: Price) => {
 const SubscribeModal: React.FC<SubscribeModalProps> = ({ products }) => {
   const subscribeModal = useSubscribeModal();
   const { user, isLoading, subscription } = useUser();
+
   const [priceIdLoading, setPriceIdLoading] = useState<string>();
 
   const onChange = (open: boolean) => {
@@ -53,15 +54,13 @@ const SubscribeModal: React.FC<SubscribeModalProps> = ({ products }) => {
     try {
       const { sessionId } = await postData({
         url: '/api/create-checkout-session',
-        data: {
-          price
-        }
+        data: { price }
       });
 
       const stripe = await getStripe();
       stripe?.redirectToCheckout({ sessionId });
     } catch (error) {
-      toast.error((error as Error).message);
+      return toast.error((error as Error)?.message);
     } finally {
       setPriceIdLoading(undefined);
     }
@@ -69,13 +68,14 @@ const SubscribeModal: React.FC<SubscribeModalProps> = ({ products }) => {
 
   let content = <div className="text-center">No products available.</div>;
 
-  if (products.length === 0) {
+  if (products.length) {
     content = (
       <div>
         {products.map((product) => {
           if (!product.prices?.length) {
             return <div key={product.id}>No prices available</div>;
           }
+
           return product.prices.map((price) => (
             <Button
               key={price.id}
@@ -83,7 +83,7 @@ const SubscribeModal: React.FC<SubscribeModalProps> = ({ products }) => {
               disabled={isLoading || price.id === priceIdLoading}
               className="mb-4"
             >
-              {`Subscribe for ${formatePrice(price)} a ${price.interval}`}
+              {`Subscribe for ${formatPrice(price)} a ${price.interval}`}
             </Button>
           ));
         })}
@@ -92,7 +92,7 @@ const SubscribeModal: React.FC<SubscribeModalProps> = ({ products }) => {
   }
 
   if (subscription) {
-    content = <div className="text-center">Already subscribed</div>;
+    content = <div className="text-center">Already subscribed.</div>;
   }
 
   return (
