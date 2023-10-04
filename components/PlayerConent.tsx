@@ -62,7 +62,7 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
     },
     onpause: () => setIsPlaying(false),
     format: ['mp3']
-  });
+  }) as any;
 
   useEffect(() => {
     sound?.play();
